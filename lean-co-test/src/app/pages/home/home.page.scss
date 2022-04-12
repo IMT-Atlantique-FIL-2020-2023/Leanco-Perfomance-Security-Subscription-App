@@ -1,0 +1,30 @@
+.title {
+  text-align: center;
+}
+
+.button {
+  margin-top: 20px;
+}
+
+.logo {
+  width: 50vw;
+  max-width: 200px;
+  margin: auto;
+}
+
+.body {
+  margin: 35px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+.error {
+  color: red;
+}
