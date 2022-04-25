@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Infos utilisateur</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="body">
+    <div class="flex-jacenter">
+      <div class="flex-jacenter">
+        <img src="assets/images/logo.png" alt="logo LeanCo" class="logo">
+      </div>
+      <div style="max-width: 600px; margin-top: 15px">
+        <div>
+        <div class="line-obj">
+          <strong>Prénom : </strong>
+          <span>{{ infos.surname }}</span>
+        </div>
+        <div class="line-obj">
+          <strong>Nom : </strong>
+          <span>{{ infos.name }}</span>
+        </div>
+        <div class="line-obj">
+          <strong>Type d'abonnement : </strong>
+          <span>{{ infos.subscriptionType }}</span>
+        </div>
+        <div class="line-obj">
+          <strong>Date d'expiration de l'abonnement : </strong>
+          <span>{{ infos.subscriptionExpirationDate }}</span>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
