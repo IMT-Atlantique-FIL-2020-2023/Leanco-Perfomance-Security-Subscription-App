@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import {HomePage} from "../pages/home/home.page";
 
 @Component({
   selector: 'app-userinfos',
@@ -11,15 +12,9 @@ export class UserinfosPage implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    this.getUserInfos();
+    this.infos = HomePage.getInfos();
   }
 
-  getUserInfos() {
-    if(this.infos === null) {
-      /* TODO: get required info from the API */
-      this.infos = {"subscriptionType": "My Subscription", "subscriptionExpirationDate":"2022-06-22", "name":"Name", "surname":"Surname"}
-    }
-    return this.infos;
-  }
+
 
 }
