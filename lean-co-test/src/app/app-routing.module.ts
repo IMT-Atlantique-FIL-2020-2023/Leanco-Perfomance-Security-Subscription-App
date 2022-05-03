@@ -8,7 +8,7 @@ const routes: Routes = [
   },
   {
     path: 'userinfos',
-    loadChildren: () => import('./userinfos/userinfos.module').then( m => m.UserinfosPageModule)
+    loadChildren: () => import('./pages/userinfos/userinfos.module').then(m => m.UserinfosPageModule)
   }
 ];
 @NgModule({

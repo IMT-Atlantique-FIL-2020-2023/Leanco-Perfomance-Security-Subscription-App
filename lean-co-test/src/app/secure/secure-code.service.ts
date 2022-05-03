@@ -1,18 +1,27 @@
 import { Injectable } from '@angular/core';
-import {generalVerify, KeyLike} from "jose";
+import {compactVerify, generalVerify, importX509, KeyLike} from "jose";
+import {LoginService} from "../leanco-subscription-server-client";
+import {HttpClient} from "@angular/common/http";
+import {ALGO, CA} from "./constants";
 
 @Injectable({
   providedIn: 'root'
 })
 export class SecureCodeService {
-  constructor(private readonly rootCA : KeyLike) {}
 
-  async login() {
-    //TODO API ROUTE
-    let json = await fetch("I DONT HAVE THE API ROUTE YET").then(response => response.json())
-    if(json.hasOwnProperty("error")) {
-      throw new Error(json.error)
-    }
-    //const {payload, protectedHeader} = await generalVerify(json.jws, publicKey)
+  private loginService: LoginService
+
+  constructor(private readonly rootCA : KeyLike, private readonly http: HttpClient) {
+    this.loginService = new LoginService(http)
+  }
+
+  async login(login: string, password: string) {
+
+    const {public_ca, jws} = await this.loginService.loginApiV1LoginPost({login, password}).toPromise()
+
+    const {payload, protectedHeader} = await compactVerify(jws, await importX509(public_ca, ALGO))
+
+    console.log(protectedHeader)
+    console.log(new TextDecoder().decode(payload))
   }
 }

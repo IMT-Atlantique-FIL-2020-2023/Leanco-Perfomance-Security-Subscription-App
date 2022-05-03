@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {HomePage} from "../pages/home/home.page";
+import {HomePage} from "../home/home.page";
 
 @Component({
   selector: 'app-userinfos',

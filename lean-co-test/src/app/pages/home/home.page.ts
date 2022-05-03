@@ -3,6 +3,7 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ToastController} from "@ionic/angular";
 import {importX509, generalVerify} from "jose"
 import {CA, ALGO} from "../../secure/constants";
+import {SecureCodeService} from "../../secure/secure-code.service";
 
 @Component({
   selector: 'app-home',
@@ -14,7 +15,7 @@ export class HomePage implements OnInit {
   submitted = false;
   static infos = null;
 
-  constructor(public formBuilder: FormBuilder, public toastController: ToastController) { }
+  constructor(public formBuilder: FormBuilder, public toastController: ToastController, public secureCodeService: SecureCodeService) { }
 
   ngOnInit() {
     this.loginForm = this.formBuilder.group({
@@ -34,8 +35,8 @@ export class HomePage implements OnInit {
     if (!this.loginForm.valid) {
       return false;
     } else {
-      console.log(this.loginForm.value)
-     // this.login(); // Faire un then pour traiter
+      console.log(this.secureCodeService)
+      await this.secureCodeService.login(this.loginForm.value.email, this.loginForm.value.password);
       const toast = await this.toastController.create({
         message: 'Connexion en cours',
         duration: 2000
