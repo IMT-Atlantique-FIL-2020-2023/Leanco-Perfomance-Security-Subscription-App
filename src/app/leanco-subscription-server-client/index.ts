@@ -8,7 +8,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { HTTPValidationError } from './models/HTTPValidationError';
 export type { LoginResponse } from './models/LoginResponse';
-export type { UserLogin } from './models/UserLogin';
+export type { UserCredentials } from './models/UserCredentials';
 export type { ValidationError } from './models/ValidationError';
 
 export { LoginService } from './services/LoginService';

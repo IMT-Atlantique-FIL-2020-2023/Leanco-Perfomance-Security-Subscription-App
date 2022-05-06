@@ -2,7 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type UserLogin = {
-    login: string;
+export type UserCredentials = {
+    email: string;
     password: string;
 };

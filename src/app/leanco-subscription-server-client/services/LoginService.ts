@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 
 import type { LoginResponse } from '../models/LoginResponse';
-import type { UserLogin } from '../models/UserLogin';
+import type { UserCredentials } from '../models/UserCredentials';
 
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -22,12 +22,12 @@ export class LoginService {
      * @returns LoginResponse Successful Response
      * @throws ApiError
      */
-    public loginApiV1LoginPost(
-        requestBody?: UserLogin,
+    public loginApiLoginPost(
+        requestBody?: UserCredentials,
     ): Observable<LoginResponse> {
         return __request(OpenAPI, this.http, {
             method: 'POST',
-            url: '/api/v1/login',
+            url: '/api/login',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
