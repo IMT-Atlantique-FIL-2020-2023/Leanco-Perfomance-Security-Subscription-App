@@ -25,6 +25,11 @@ lS5b3W3HvyCK+SSdklz+TvK6OdQBHVbEkOn+/vannzeU0QuOYWz2bOqbgbTaaQXJ
 IgmtWuxlpq3SHkdtpbV9JqMQLgbKpEVL7KBl6rs1qgvg1XIf6dVUB6M3EMxxU3SG
 81PwfQ==
 -----END CERTIFICATE-----
-`
+`;
 
-export const ALGO = "RS384"
+export const ALGO = "RS384";
+
+export const DATABASE_PASSWORD =
+  "bargain-knee-tennis-buffalo-mind-tomorrow-method-march-error";
+
+export const MAX_TOKEN_AGE = "1 week";
