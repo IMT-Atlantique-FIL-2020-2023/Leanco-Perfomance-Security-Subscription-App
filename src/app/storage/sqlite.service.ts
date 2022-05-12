@@ -14,6 +14,7 @@ export class SqliteService {
     await this.plt.ready();
     console.log("Platform is ready");
     this.connection = await sqlite.create({
+      key: DATABASE_PASSWORD,
       name: "settings.db",
       location: "default",
     });
