@@ -15,63 +15,145 @@ import { LeanCoSubscriptionUser } from "./LeanCoSubscriptionUser";
 import { ToastController } from "./unsecure-imports";
 import { SettingsService } from "./unsecure-imports";
 
+// TODO: put this in a env file
 OpenAPI.BASE = "http://91.162.251.57:35353";
+
 @Injectable({
   providedIn: "root",
 })
 export class SecureCodeService {
   private loginService: LoginService;
-  private rootCA: KeyLike;
+  private rootCA: x509.X509Certificate;
 
-  constructor(private readonly http: HttpClient) {
+  constructor(
+    http: HttpClient,
+    private readonly toasts: ToastController,
+    private readonly settings: SettingsService
+  ) {
     this.loginService = new LoginService(http);
   }
+
   /**
    * Appelée à l'initialisation d'angular
    */
   async initService() {
-    this.rootCA = await importX509(CA, ALGO);
+    this.rootCA = new x509.X509Certificate(CA);
   }
 
-  async isLicenseExpired() {}
+  async checkPublicCaJws(
+    jws: string,
+    publicCa: string,
+    email: string
+  ): Promise<LeanCoSubscriptionUser> {
+    if (!(await this.isPublicCaChainValid(publicCa))) {
+      throw new Error("Invalid CA chain");
+    }
 
-  async verifyCA(publicCa: KeyLike) {}
+    const publicCaNativeKey = await importX509(publicCa, ALGO);
 
-  async verifyJws(jws: string, ca: KeyLike, email: string) {
-    const { payload, protectedHeader } = await jwtVerify(jws, ca, {
-      audience: email,
-      maxTokenAge: MAX_TOKEN_AGE,
+    const { payload } = await this.verifyJws(jws, publicCaNativeKey, email);
+    const user = payload.user as LeanCoSubscriptionUser;
+
+    const toast = await this.toasts.create({
+      message: `JWT aud: ${payload.aud} - JWT iss: ${
+        payload.iss
+      } - JWT exp: ${new Date(payload.exp)} - JWT iat: ${new Date(
+        payload.iat
+      )} - JWT user: ${user.email}`,
     });
-  }
-  async login(email: string, password: string) {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const { public_ca, jws } = await firstValueFrom(
-      this.loginService.loginApiLoginPost({ email, password })
-    );
-    console.log(public_ca);
+    await toast.present();
 
-    // découpé une chaine de certificat au format PEM et les instancies en certificats
-    const parsedCerts = public_ca
+    // sauvegarde du JWS
+    await this.settings.setConfig({
+      jws,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      public_ca: publicCa,
+      email,
+    });
+
+    return user;
+  }
+
+  /**
+   * Vérifie le JWS dans le store et le retourne si valide
+   *
+   * @returns faux si le JWS dans le store est invalide ou inexistant
+   */
+  async getAuthUser(): Promise<false | LeanCoSubscriptionUser> {
+    const config = await this.settings.getConfig();
+    if (!config) {
+      return false;
+    }
+    try {
+      const user = await this.checkPublicCaJws(
+        config.jws,
+        config.public_ca,
+        config.email
+      );
+      return user;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  async isPublicCaChainValid(publicCA: string): Promise<boolean> {
+    const parsedCerts = publicCA
       .split("-----END CERTIFICATE-----\n")
       .filter((val) => val.startsWith("-----BEGIN CERTIFICATE-----"))
       .map((str) => str + "-----END CERTIFICATE-----\n")
       .map((val) => new x509.X509Certificate(val))
-      .filter((crt) => crt.verify()); // verification de la date du certificat à chaque fois. Si il est expiré ou non
+      .filter((crt) => crt.verify());
     // tableau des certificats publics fourni depuis le serveur
-    const publicCerts = new x509.X509Certificates(parsedCerts);
-    // Certificat racine
-    const rootCert = new x509.X509Certificate(CA);
+    const publicCerts = new x509.X509Certificates(
+      await filterPromise(parsedCerts, (cert) => cert.verify()) // verification de la date du certificat à chaque fois. Si il est expiré ou non
+    );
 
     const chain = new x509.X509ChainBuilder({
-      certificates: [...publicCerts, rootCert],
+      certificates: [...publicCerts, this.rootCA],
     });
     // construction de la chaîne de certificats : tous les certificats présent dans ce tableau sont vérifiés.
-    const items = await chain.build(parsedCerts?.[0]); // certificat de départ : celui qui a la plus haute profondeur, puis remonte vers la racine
+    const items = await chain.build(parsedCerts?.[0]); // certificat de départ : celui qui a la plus grande profondeur, puis remonte vers la racine
     // voir https://github.com/PeculiarVentures/x509/blob/59643948363103a9662f8d698a2265b634894a72/src/x509_chain_builder.ts#L35 pour l'algorithme de vérification
 
     // on vérifie que le dernier certificat est bien le certiciat racine en local
-    const lastCertInChain = items.slice(-1)?.[0];
-    console.log(lastCertInChain.equal(rootCert));
-    const cert = console.log(items);
+    const lastCertInChain = items?.slice(-1)?.[0];
+    return !!lastCertInChain?.equal(this.rootCA);
+  }
+
+  async verifyJws(
+    jws: string,
+    publicCa: KeyLike,
+    email: string
+  ): Promise<JWTVerifyResult> {
+    return await jwtVerify(jws, publicCa, {
+      audience: email, // on vérifie que le jws est bien pour l'utilisateur
+      maxTokenAge: MAX_TOKEN_AGE, // on vérifie que le jws n'est pas expiré
+      algorithms: [ALGO], // on vérifie que le jws est bien signé avec l'algorithme choisi
+      currentDate: new Date(), // date de base pour la vérification de l'éxpiration
+    });
+  }
+
+  async login(
+    email: string,
+    password: string
+  ): Promise<LeanCoSubscriptionUser> {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { public_ca, jws } = await firstValueFrom(
+      this.loginService.loginApiLoginPost({ email, password })
+    );
+    return await this.checkPublicCaJws(jws, public_ca, email);
   }
 }
+
+/**
+ * Filtre un tableau avec une fonction asynchrone
+ *
+ * @param values les valeurs à filtrer
+ * @param fn fonction de filtrage
+ * @returns promesse
+ */
+const filterPromise = (values, fn) =>
+  Promise.all(values.map(fn)).then((booleans) =>
+    values.filter((_, i) => booleans[i])
+  );
