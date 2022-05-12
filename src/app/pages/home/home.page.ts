@@ -39,16 +39,25 @@ export class HomePage implements OnInit {
     if (!this.loginForm.valid) {
       return false;
     } else {
-      await this.secureCodeService.login(
-        this.loginForm.value.email,
-        this.loginForm.value.password
-      );
-      const toast = await this.toastController.create({
-        message: "Connexion en cours",
-        duration: 2000,
-      });
-      toast.present();
-      await this.router.navigate(["userinfos"]);
+      try {
+        await this.secureCodeService.login(
+          this.loginForm.value.email,
+          this.loginForm.value.password
+        );
+
+        const toast = await this.toastController.create({
+          message: "Connexion en cours",
+          duration: 500,
+        });
+        toast.present();
+        await this.router.navigate(["userinfos"]);
+      } catch (e) {
+        const toast = await this.toastController.create({
+          message: `Whoops: ${e.message}`,
+          duration: 2000,
+        });
+        toast.present();
+      }
     }
   }
 }
