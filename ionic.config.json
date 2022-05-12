@@ -1,7 +1,7 @@
 {
-  "name": "LeanCo Test",
+  "name": "Leanco-Perfomance-Security-Subscription-App",
   "integrations": {
-    "capacitor": {}
+    "cordova": {}
   },
   "type": "angular"
 }
