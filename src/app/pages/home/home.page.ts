@@ -1,8 +1,8 @@
 import { Component, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { Route, Router } from "@angular/router";
 import { ToastController } from "@ionic/angular";
-import { importX509, generalVerify } from "jose";
-import { CA, ALGO } from "../../secure/constants";
+
 import { SecureCodeService } from "../../secure/secure-code.service";
 
 @Component({
@@ -11,19 +11,20 @@ import { SecureCodeService } from "../../secure/secure-code.service";
   styleUrls: ["./home.page.scss"],
 })
 export class HomePage implements OnInit {
-  static infos = null;
-
   loginForm: FormGroup;
   submitted = false;
 
   constructor(
+    public router: Router,
     public formBuilder: FormBuilder,
     public toastController: ToastController,
     public secureCodeService: SecureCodeService
-  ) {}
-
-  static getInfos() {
-    return this.infos;
+  ) {
+    (async () => {
+      if (await this.secureCodeService.getAuthUser()) {
+        this.router.navigate(["userinfos"]);
+      }
+    })();
   }
 
   ngOnInit() {
@@ -38,7 +39,6 @@ export class HomePage implements OnInit {
     if (!this.loginForm.valid) {
       return false;
     } else {
-      console.log(this.secureCodeService);
       await this.secureCodeService.login(
         this.loginForm.value.email,
         this.loginForm.value.password
@@ -48,6 +48,7 @@ export class HomePage implements OnInit {
         duration: 2000,
       });
       toast.present();
+      await this.router.navigate(["userinfos"]);
     }
   }
 }

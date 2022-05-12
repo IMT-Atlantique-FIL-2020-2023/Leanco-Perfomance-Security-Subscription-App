@@ -5,3 +5,5 @@ export { LeanCoSubscriptionUser } from "./LeanCoSubscriptionUser";
 export { ToastController } from "@ionic/angular";
 export { SettingsService } from "../storage/settings.service";
 export { HttpClient } from "@angular/common/http";
+export { Injectable } from "@angular/core";
+export { Router, CanActivate } from "@angular/router";

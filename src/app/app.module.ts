@@ -1,6 +1,6 @@
 import { APP_INITIALIZER, NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
-import { RouteReuseStrategy } from "@angular/router";
+import { Router, RouteReuseStrategy } from "@angular/router";
 
 import { IonicModule, IonicRouteStrategy } from "@ionic/angular";
 
@@ -13,6 +13,7 @@ import { SqliteService } from "./storage/sqlite.service";
 import { initSqliteService } from "./storage/sqlite.init";
 import { SQLite } from "@awesome-cordova-plugins/sqlite/ngx";
 import { StorageModule } from "./storage/storage.module";
+import { AuthGuard } from "./secure/auth.guard";
 
 @NgModule({
   declarations: [AppComponent],
@@ -26,6 +27,7 @@ import { StorageModule } from "./storage/storage.module";
   ],
   providers: [
     SecureCodeService,
+    AuthGuard,
     SQLite,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     // initialise les services au chargement d'angular

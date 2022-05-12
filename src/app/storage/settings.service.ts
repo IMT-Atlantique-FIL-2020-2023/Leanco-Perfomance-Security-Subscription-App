@@ -15,19 +15,19 @@ export class SettingsService {
   constructor(private readonly sqliteService: SqliteService) {}
   async getConfig(): Promise<SettingsRow> {
     return this.sqliteService.connection
-      .executeSql("SELECT * FROM settings")
-      .then(({ rows }) => rows.item(0));
+      .executeSql("SELECT * FROM settings", [])
+      .then(({ rows }) => rows?.item?.(0));
   }
   async setConfig(config: SettingsRow): Promise<SettingsRow> {
     return this.sqliteService.connection
       .executeSql(
         `
         INSERT OR REPLACE INTO settings (
-          0,
+          id,
           public_ca,
           jws,
           email
-        ) VALUES (?, ?)
+        ) VALUES (0, ?, ?, ?)
       `,
         [config.public_ca, config.jws, config.email]
       )

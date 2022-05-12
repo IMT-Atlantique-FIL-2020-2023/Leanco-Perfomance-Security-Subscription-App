@@ -16,14 +16,13 @@ import { ToastController } from "./unsecure-imports";
 import { SettingsService } from "./unsecure-imports";
 
 // TODO: put this in a env file
-OpenAPI.BASE = "http://91.162.251.57:35353";
+OpenAPI.BASE = "http://localhost:9000";
 
 @Injectable({
   providedIn: "root",
 })
 export class SecureCodeService {
   private loginService: LoginService;
-  private rootCA: x509.X509Certificate;
 
   constructor(
     http: HttpClient,
@@ -36,9 +35,7 @@ export class SecureCodeService {
   /**
    * Appelée à l'initialisation d'angular
    */
-  async initService() {
-    this.rootCA = new x509.X509Certificate(CA);
-  }
+  async initService() {}
 
   async checkPublicCaJws(
     jws: string,
@@ -49,17 +46,19 @@ export class SecureCodeService {
       throw new Error("Invalid CA chain");
     }
 
-    const publicCaNativeKey = await importX509(publicCa, ALGO);
+    const publicCaNativeKey = await importX509(
+      publicCa
+        .split("-----END CERTIFICATE-----\n")
+        .filter((val) => val.startsWith("-----BEGIN CERTIFICATE-----"))?.[0],
+      ALGO
+    );
 
     const { payload } = await this.verifyJws(jws, publicCaNativeKey, email);
     const user = payload.user as LeanCoSubscriptionUser;
-
     const toast = await this.toasts.create({
-      message: `JWT aud: ${payload.aud} - JWT iss: ${
-        payload.iss
-      } - JWT exp: ${new Date(payload.exp)} - JWT iat: ${new Date(
-        payload.iat
-      )} - JWT user: ${user.email}`,
+      message: `JWT aud: ${payload.aud} - JWT exp: ${new Date(
+        payload.exp
+      )} - JWT iat: ${new Date(payload.iat)} - JWT user: ${user.email}`,
     });
     await toast.present();
 
@@ -102,23 +101,22 @@ export class SecureCodeService {
       .split("-----END CERTIFICATE-----\n")
       .filter((val) => val.startsWith("-----BEGIN CERTIFICATE-----"))
       .map((str) => str + "-----END CERTIFICATE-----\n")
-      .map((val) => new x509.X509Certificate(val))
-      .filter((crt) => crt.verify());
-    // tableau des certificats publics fourni depuis le serveur
-    const publicCerts = new x509.X509Certificates(
-      await filterPromise(parsedCerts, (cert) => cert.verify()) // verification de la date du certificat à chaque fois. Si il est expiré ou non
-    );
+      .map((val) => new x509.X509Certificate(val));
+
+    const publicCerts = new x509.X509Certificates(parsedCerts);
+    // Certificat racine
+    const rootCert = new x509.X509Certificate(CA);
 
     const chain = new x509.X509ChainBuilder({
-      certificates: [...publicCerts, this.rootCA],
+      certificates: [...publicCerts, rootCert],
     });
+
     // construction de la chaîne de certificats : tous les certificats présent dans ce tableau sont vérifiés.
     const items = await chain.build(parsedCerts?.[0]); // certificat de départ : celui qui a la plus grande profondeur, puis remonte vers la racine
     // voir https://github.com/PeculiarVentures/x509/blob/59643948363103a9662f8d698a2265b634894a72/src/x509_chain_builder.ts#L35 pour l'algorithme de vérification
-
     // on vérifie que le dernier certificat est bien le certiciat racine en local
     const lastCertInChain = items?.slice(-1)?.[0];
-    return !!lastCertInChain?.equal(this.rootCA);
+    return !!lastCertInChain?.equal(rootCert);
   }
 
   async verifyJws(
@@ -146,14 +144,25 @@ export class SecureCodeService {
   }
 }
 
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+function mapAsync<T, U>(
+  array: T[],
+  callbackfn: (value: T, index: number, array: T[]) => Promise<U>
+): Promise<U[]> {
+  return Promise.all(array.map(callbackfn));
+}
 /**
  * Filtre un tableau avec une fonction asynchrone
  *
- * @param values les valeurs à filtrer
- * @param fn fonction de filtrage
+ * @param array les valeurs à filtrer
+ * @param callbackfn fonction de filtrage
  * @returns promesse
  */
-const filterPromise = (values, fn) =>
-  Promise.all(values.map(fn)).then((booleans) =>
-    values.filter((_, i) => booleans[i])
-  );
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+async function filterAsync<T>(
+  array: T[],
+  callbackfn: (value: T, index: number, array: T[]) => Promise<boolean>
+): Promise<T[]> {
+  const filterMap = await mapAsync(array, callbackfn);
+  return array.filter((_value, index) => filterMap[index]);
+}
