@@ -11,10 +11,10 @@
         <img src="../../../assets/images/logo.png" alt="logo LeanCo" class="logo" />
       </div>
       <div style="max-width: 600px; margin-top: 15px">
-        <div *ngIf="infos$ | async as infos">
+        <div>
           <div class="line-obj">
             <strong>Infos</strong>
-            <span>{{ infos | json }}</span>
+            <pre>{{ infos | async | json }}</pre>
           </div>
         </div>
       </div>

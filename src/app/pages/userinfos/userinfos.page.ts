@@ -1,8 +1,7 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 import { SecureCodeService } from "src/app/secure/secure-code.service";
-import { HomePage } from "../home/home.page";
 import { LeanCoSubscriptionUser } from "../../secure/LeanCoSubscriptionUser";
-import { BehaviorSubject, Observable, of } from "rxjs";
+import { Observable, from } from "rxjs";
 
 @Component({
   selector: "app-userinfos",
@@ -10,11 +9,13 @@ import { BehaviorSubject, Observable, of } from "rxjs";
   styleUrls: ["./userinfos.page.scss"],
 })
 export class UserinfosPage implements OnInit {
-  infos$: Observable<LeanCoSubscriptionUser>;
-  constructor(private readonly secure: SecureCodeService) {}
+  @Input() infos: Observable<LeanCoSubscriptionUser>;
+  constructor(private readonly secure: SecureCodeService) {
+    //@ts-ignore
+  }
 
   ngOnInit() {
     //@ts-ignore
-    this.infos = of(this.secure.getAuthUser());
+    this.infos = from(this.secure.getAuthUser());
   }
 }
