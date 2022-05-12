@@ -5,6 +5,7 @@ export type SettingsRow = {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   public_ca: string;
   jws: string;
+  email: string;
 };
 
 @Injectable({
@@ -24,10 +25,11 @@ export class SettingsService {
         INSERT OR REPLACE INTO settings (
           0,
           public_ca,
-          jws
+          jws,
+          email
         ) VALUES (?, ?)
       `,
-        [config.public_ca, config.jws]
+        [config.public_ca, config.jws, config.email]
       )
       .then(() => config);
   }

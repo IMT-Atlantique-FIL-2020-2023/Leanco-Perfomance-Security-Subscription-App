@@ -9,6 +9,10 @@ import { AppComponent } from "./app.component";
 import { SecureCodeService } from "./secure/secure-code.service";
 import { HttpClientModule } from "@angular/common/http";
 import { initSecureCodeService } from "./secure/secure-code.init";
+import { SqliteService } from "./storage/sqlite.service";
+import { initSqliteService } from "./storage/sqlite.init";
+import { SQLite } from "@awesome-cordova-plugins/sqlite/ngx";
+import { StorageModule } from "./storage/storage.module";
 
 @NgModule({
   declarations: [AppComponent],
@@ -18,10 +22,13 @@ import { initSecureCodeService } from "./secure/secure-code.init";
     IonicModule.forRoot(),
     AppRoutingModule,
     HttpClientModule,
+    StorageModule,
   ],
   providers: [
     SecureCodeService,
+    SQLite,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    // initialise les services au chargement d'angular
     {
       provide: APP_INITIALIZER,
       useFactory: initSecureCodeService,
