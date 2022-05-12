@@ -1,4 +1,4 @@
-import { Injectable } from "./unsecure-imports";
+import { Injectable } from "@angular/core";
 import { Router, CanActivate } from "./unsecure-imports";
 import { SecureCodeService } from "./secure-code.service";
 @Injectable()
