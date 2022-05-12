@@ -1,16 +1,20 @@
+/**
+ * Ce service est obfsucé par WebpackObfuscator
+ * Certaines bibliothèques non critiques ne le sont pas
+ * Voir webpack.config.ts
+ *
+ */
 import { Injectable } from "@angular/core";
 import * as x509 from "@peculiar/x509";
-import {
-  compactVerify,
-  generalVerify,
-  importX509,
-  jwtVerify,
-  KeyLike,
-} from "jose";
+import { importX509, jwtVerify, JWTVerifyResult, KeyLike } from "jose";
 import { LoginService, OpenAPI } from "../leanco-subscription-server-client";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient } from "./unsecure-imports";
 import { ALGO, CA, MAX_TOKEN_AGE } from "./constants";
-import { firstValueFrom } from "rxjs";
+import { firstValueFrom } from "./unsecure-imports";
+import { LeanCoSubscriptionUser } from "./LeanCoSubscriptionUser";
+import { ToastController } from "./unsecure-imports";
+import { SettingsService } from "./unsecure-imports";
+
 OpenAPI.BASE = "http://91.162.251.57:35353";
 @Injectable({
   providedIn: "root",
