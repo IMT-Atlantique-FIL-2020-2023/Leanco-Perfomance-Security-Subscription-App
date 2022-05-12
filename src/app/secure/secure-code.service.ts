@@ -1,4 +1,5 @@
 /**
+ * @author Simon Sassi - Julien Raquois
  * Ce service est obfsucé par WebpackObfuscator
  * Certaines bibliothèques non critiques ne le sont pas
  * Voir webpack.config.ts

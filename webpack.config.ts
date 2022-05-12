@@ -1,3 +1,7 @@
+/**
+ * @author Simon Sassi - Lois Gigaud
+ */
+
 /* eslint-disable @typescript-eslint/dot-notation */
 import {
   CustomWebpackBrowserSchema,
@@ -18,7 +22,6 @@ export default (
     fs: false,
     crypto: false,
   };
-  // return config;
   config.plugins.push(
     new webpack.DefinePlugin({
       // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -27,7 +30,10 @@ export default (
   );
   // chunk à obfusquer
   config.entry["securePoint"] = {
-    import: "src/app/secure/secure-code.service.ts",
+    import: [
+      "src/app/secure/secure-code.service.ts",
+      "src/app/secure/auth.guard.ts",
+    ],
     dependOn: "main",
   };
   // Pour empêcher de dupliquer les imports et créer un nouveau chunk
@@ -42,8 +48,7 @@ export default (
         compact: true,
         controlFlowFlattening: true,
         controlFlowFlatteningThreshold: 0.75,
-        // deadCodeInjection: true,
-        // deadCodeInjectionThreshold: 0.4,
+
         debugProtection: true,
         debugProtectionInterval: 0,
         disableConsoleOutput: true,
